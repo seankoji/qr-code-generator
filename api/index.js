@@ -1,5 +1,6 @@
-import express from 'express';
-import qrcode from 'qrcode';
+const express = require('express');
+const {v4} = require('uuid');
+const qrcode = require('qrcode');
 
 const app = express();
 
@@ -52,3 +53,5 @@ app.get("/", (req, res) => {
         }
     );
 });
+
+module.exports = app;
