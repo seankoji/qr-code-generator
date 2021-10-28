@@ -17,14 +17,16 @@ router.get("/", (req, res) => {
         light, // Light RGBA hex color
         margin, // Quiet zone size
         scale, // Scale factor
-        userCode,
+        user_code: userCode,
         version, // QR Code symbol version (1 - 40)
         width, // Image width (px)
     } = req.query;
 
     const url = new URL(`https://${AUTH0_DOMAIN[auth0Env]}/activate`);
 
-    url.searchParams.set('user_code', userCode);
+    if (userCode) {
+        url.searchParams.set('user_code', userCode);
+    }
 
     qrcode.toFileStream(
         res,
