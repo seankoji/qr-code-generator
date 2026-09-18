@@ -28,6 +28,17 @@ router.get("/", (req, res) => {
         url.searchParams.set('user_code', userCode);
     }
 
+    // qrcode.toFileStream reports failures on the destination stream;
+    // it does not accept a callback argument.
+    res.once('error', function onError(err) {
+        console.error(err);
+        if (res.headersSent) {
+            res.destroy();
+            return;
+        }
+        res.status(500).send("Server error");
+    });
+
     qrcode.toFileStream(
         res,
         url.toString(),
@@ -40,15 +51,11 @@ router.get("/", (req, res) => {
                 dark,
                 light,
             },
+            errorCorrectionLevel,
+            version,
             scale,
             margin,
             width,
-        },
-        function onError(err) {
-            console.error(err);
-
-            return res.status(500)
-                .send("Server error");
         }
     );
 });

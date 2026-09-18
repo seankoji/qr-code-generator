@@ -1,0 +1,16 @@
+{
+  "all": true,
+  "include": [
+    "api/**/*.js"
+  ],
+  "exclude": [
+    "test/**",
+    "node_modules/**"
+  ],
+  "reporter": [
+    "text",
+    "cobertura",
+    "json-summary"
+  ],
+  "reports-dir": "coverage"
+}
