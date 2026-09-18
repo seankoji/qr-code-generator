@@ -40,6 +40,8 @@ router.get("/", (req, res) => {
                 dark,
                 light,
             },
+            errorCorrectionLevel,
+            version,
             scale,
             margin,
             width,
