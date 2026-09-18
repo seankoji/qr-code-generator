@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const path = require('node:path');
+const { EventEmitter } = require('node:events');
 
 function fixture() {
   let handler;
@@ -12,8 +13,8 @@ function fixture() {
     if (name === 'qrcode') return { toFileStream: (...args) => { call = args; } };
     throw new Error(`Unexpected dependency: ${name}`);
   } };
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../api/qr-code.js'), 'utf8'), context);
-  return { request: query => { const response = {}; handler({ query }, response); return { call, response }; } };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../api/qr-code.js'), 'utf8'), context, { filename: path.join(__dirname, '../api/qr-code.js') });
+  return { request: query => { const response = new EventEmitter(); handler({ query }, response); return { call, response }; } };
 }
 
 test('defaults to production activation without an empty user_code', () => {
@@ -49,7 +50,17 @@ test('encoder failure responds with a server error', () => {
   let body;
   response.status = value => { status = value; return response; };
   response.send = value => { body = value; return response; };
-  call[3](new Error('fixture encoder failure'));
+  response.emit('error', new Error('fixture encoder failure'));
   assert.equal(status, 500);
   assert.equal(body, 'Server error');
+});
+
+test('stream failure after headers closes the response without sending another status', () => {
+  const { response } = fixture().request({});
+  response.headersSent = true;
+  let destroyed = false;
+  response.destroy = () => { destroyed = true; };
+  response.status = () => assert.fail('headers already sent');
+  response.emit('error', new Error('late stream failure'));
+  assert.equal(destroyed, true);
 });
